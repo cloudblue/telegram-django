@@ -1,0 +1,2 @@
+class SavedFilterNotFound(Exception):
+    pass
