@@ -226,11 +226,12 @@ class TelegramConversation(object, metaclass=ABCMeta):
         try:
             execute_from_command_line(['', command])
             self._reply(update, f'Result {command}:\n{mystdout.getvalue()}')
+            return True
         except Exception as e:
             self._reply(update, f'Error {command}:\n{e}')
-
-        sys.stdout = old_stdout
-        return self._end_conversation(update)
+            return False
+        finally:
+            sys.stdout = old_stdout
 
     @log_args
     def show_mode_select(self, update, context):
