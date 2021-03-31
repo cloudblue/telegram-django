@@ -14,6 +14,7 @@ from connect.telegram_bot.constants import (
 from connect.telegram_bot.telegram_conversation import TelegramConversation
 from connect.telegram_bot.errors.saved_filter_not_found import SavedFilterNotFound
 
+from tests.telegram_bot import INITIAL_QUERY_SET_METHOD, TELEGRAM_REPLY_METHOD
 from tests.telegram_bot.conftest import ConvTest, ConvTestFiltersCommands, FakeModel
 
 from django_mock_queries.query import MockModel, MockSet
@@ -65,7 +66,7 @@ def test_cancel(mocker, telegram_bot):
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None)
@@ -84,7 +85,7 @@ def test_show_mode_select(mocker, telegram_bot):
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None)
@@ -103,7 +104,7 @@ def test_get_mode_show_mode_options(mocker, telegram_bot):
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_BUILD_QUERY)
@@ -142,7 +143,7 @@ def test_get_mode_show_mode_options_w_f_and_c(mocker, telegram_bot):
     c = ConvTestFiltersCommands(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch('os.listdir', return_value=["x.py"])
 
     updater = Updater(bot=telegram_bot)
@@ -182,7 +183,7 @@ def test_get_period_uom_show_quantity(mocker, telegram_bot):
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=WEEKS)
@@ -202,7 +203,7 @@ def test_show_list_of_commands(mocker, telegram_bot):
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=WEEKS)
@@ -223,11 +224,12 @@ def test_get_custom_command_and_execute(mocker, telegram_bot):
     c.model = MockModel
 
     def x(*args, **kwargs):
+        #  empty function to patch custom mgmt command
         pass
 
     c.execute_custom_command = x
 
-    mocker.patch('telegram.Message.reply_text', return_value=None)
+    mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch('os.listdir', return_value=["x.py"])
 
     updater = Updater(bot=telegram_bot)
@@ -246,7 +248,7 @@ def test_get_quantity_show_yes_no_filters(mocker, telegram_bot):
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='10')
@@ -265,7 +267,7 @@ def test_execute_custom_command(telegram_bot, mocker):
     log = logging.getLogger()
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch(
         'connect.telegram_bot.telegram_conversation.execute_from_command_line',
         return_value=True,
@@ -280,7 +282,7 @@ def test_execute_custom_command(telegram_bot, mocker):
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
-    assert data == ConversationHandler.END
+    assert data is True
     assert c.query_context == {
         'mode': '',
         'period': {
@@ -302,7 +304,7 @@ def test_execute_custom_command_raise_exception(telegram_bot, mocker):
     log = logging.getLogger()
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch(
         'connect.telegram_bot.telegram_conversation.execute_from_command_line',
         side_effect=Exception('error'),
@@ -317,7 +319,7 @@ def test_execute_custom_command_raise_exception(telegram_bot, mocker):
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
-    assert data == ConversationHandler.END
+    assert data is False
     assert c.query_context == {
         'mode': '',
         'period': {
@@ -339,7 +341,7 @@ def test_get_yes_no_filters_and_proceed(mocker, telegram_bot):
     log = logging.getLogger()
     c = ConvTest(log, suffix='dev')
     c.set_chat_id(1)
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=YES)
@@ -371,7 +373,7 @@ def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=YES)
@@ -395,8 +397,7 @@ def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
         ))
 
     mocker.patch(
-        'connect.telegram_bot.telegram_conversation'
-        '.TelegramConversation._get_initial_queryset',
+        INITIAL_QUERY_SET_METHOD,
         return_value=fake_data,
     )
 
@@ -419,7 +420,7 @@ def test_get_filters_and_proceed(mocker, telegram_bot):
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='status=succeeded')
@@ -438,8 +439,7 @@ def test_get_filters_and_proceed(mocker, telegram_bot):
         ))
 
     mocker.patch(
-        'connect.telegram_bot.telegram_conversation'
-        '.TelegramConversation._get_initial_queryset',
+        INITIAL_QUERY_SET_METHOD,
         return_value=fake_data,
     )
 
@@ -459,7 +459,7 @@ def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
     c.set_query_period_quantity(10)
     c.set_aggregate_type(SUM)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='id')
@@ -477,8 +477,7 @@ def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
         ))
 
     mocker.patch(
-        'connect.telegram_bot.telegram_conversation'
-        '.TelegramConversation._get_initial_queryset',
+        INITIAL_QUERY_SET_METHOD,
         return_value=fake_data,
     )
 
@@ -497,7 +496,7 @@ def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
     c.set_query_period_quantity(10)
     c.set_chat_id(1)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=COUNT)
@@ -516,8 +515,7 @@ def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
         ))
 
     mocker.patch(
-        'connect.telegram_bot.telegram_conversation'
-        '.TelegramConversation._get_initial_queryset',
+        INITIAL_QUERY_SET_METHOD,
         return_value=fake_data,
     )
 
@@ -553,7 +551,7 @@ def test_empty_queryset(mocker, telegram_bot):
     c.add_query_filter('status', 'pending')
     c.set_query_mode(BTN_CAPTION_BUILD_QUERY)
 
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=COUNT)
@@ -574,7 +572,7 @@ def test_get_aggregate_and_proceed_sum(
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
     c.set_chat_id(1)
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text=SUM)
@@ -598,7 +596,7 @@ def test_get_aggregate_and_proceed_unknown(
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
     c.set_chat_id(1)
-    mock = mocker.patch('telegram.Message.reply_text', return_value=None)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='unknown')
@@ -623,7 +621,7 @@ def test_get_saved_filter_and_proceed(
     c.set_chat_id(1)
     c.get_saved_filter = lambda x: 1
 
-    mocker.patch('telegram.Message.reply_text', return_value=None)
+    mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='saved_filter')
@@ -644,7 +642,7 @@ def test_get_saved_filter_and_proceed_no_filter_method(
     c = ConvTest(log, suffix='dev')
     c.model = MockModel
     c.set_chat_id(1)
-    mocker.patch('telegram.Message.reply_text', return_value=None)
+    mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='unknown')
@@ -664,7 +662,7 @@ def test_get_saved_filter_and_proceed_no_user(
     c = ConvTest(log, suffix='dev')
     c.model = MockModel
     c.get_saved_filter = lambda x: 1
-    mocker.patch('telegram.Message.reply_text', return_value=None)
+    mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
     updater = Updater(bot=telegram_bot)
     message = Message(1, timezone.now(), chat=None, text='saved_filter')
