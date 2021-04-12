@@ -7,13 +7,21 @@ from telegram.utils.request import Request
 
 from django.conf import settings
 
-from connect.telegram_bot.telegram_conversation import TelegramConversation
+from django_telegram.bot.telegram_conversation import TelegramConversation
 
 settings.configure()
 settings.DATABASES = {
     'default': {
         'ENGINE': 'django_fake_database_backends.backends.postgresql',
     },
+}
+settings.TELEGRAM_BOT = {
+    'CONVERSATIONS': [
+        'tests.bot.conftest.ConvTest',
+    ],
+    'TOKEN': 'token',
+    'COMMANDS_SUFFIX': 'dev',
+    'HISTORY_LOOKUP_MODEL_PROPERTY': 'created_at',
 }
 django.setup()
 
@@ -40,19 +48,15 @@ class FakeModel(f.FakeModel):
 
 
 class ConvTest(TelegramConversation):
-    COMMANDS_DIR = None
-
-    def __init__(self, logger, suffix=None):
-        super().__init__(logger, suffix=suffix)
+    def __init__(self, logger, model_datetime_property, suffix=None):
+        super().__init__(logger, model_datetime_property, suffix=suffix)
         self.name = 'test'
         self.model = None
 
 
 class ConvTestFiltersCommands(TelegramConversation):
-    COMMANDS_DIR = '/some/dir'
-
-    def __init__(self, logger, suffix=None):
-        super().__init__(logger, suffix=suffix)
+    def __init__(self, logger, model_datetime_property, suffix=None):
+        super().__init__(logger, model_datetime_property, suffix=suffix)
         self.name = 'test'
         self.model = None
 
@@ -61,3 +65,7 @@ class ConvTestFiltersCommands(TelegramConversation):
         return [
             'avg_execution_24h',
         ]
+
+    @property
+    def custom_commands(self):
+        return ['xx']

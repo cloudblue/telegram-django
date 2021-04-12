@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "connect-telegram-bot"
-version = "1.0.1"
-description = "Connect Telegram Bot"
+name = "django-telegram"
+version = "1.0.2"
+description = "Django Telegram Bot"
 authors = ["CloudBlue LLC"]
 license = "Apache-2.0"
 packages = [
-    { include = "connect" },
+    { include = "django_telegram" },
 ]
 readme = "./README.md"
 homepage = "https://connect.cloudblue.com"
-repository = "https://github.com/cloudblue/connect-telegram-bot"
+repository = "https://github.com/cloudblue/django-telegram"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -27,6 +27,7 @@ keywords = [
     "utility",
     "cloudblue",
     "bot",
+    "django",
 ]
 
 [tool.poetry.dependencies]
@@ -59,7 +60,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = "tests"
 log_cli = true
-addopts = "--cov=connect.telegram_bot --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
+addopts = "--cov=django_telegram.bot --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
 
 [tool.coverage.run]
 branch = true

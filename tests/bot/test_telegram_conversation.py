@@ -7,22 +7,22 @@ from django.utils import timezone
 from telegram import Chat, Message
 from telegram.ext import ConversationHandler, Updater
 
-from connect.telegram_bot.constants import (
+from django_telegram.bot.constants import (
     BTN_CAPTION_BUILD_QUERY, BTN_CAPTION_CUSTOM_MGMT, BTN_CAPTION_USE_SAVED_FILTER,
     COUNT, NO, SUM, WEEKS, YES,
 )
-from connect.telegram_bot.telegram_conversation import TelegramConversation
-from connect.telegram_bot.errors.saved_filter_not_found import SavedFilterNotFound
+from django_telegram.bot.telegram_conversation import TelegramConversation
+from django_telegram.bot.errors.saved_filter_not_found import SavedFilterNotFound
 
-from tests.telegram_bot import INITIAL_QUERY_SET_METHOD, TELEGRAM_REPLY_METHOD
-from tests.telegram_bot.conftest import ConvTest, ConvTestFiltersCommands, FakeModel
+from tests.bot import INITIAL_QUERY_SET_METHOD, TELEGRAM_REPLY_METHOD
+from tests.bot.conftest import ConvTest, ConvTestFiltersCommands, FakeModel
 
 from django_mock_queries.query import MockModel, MockSet
 
 
 def test_conversation_handler():
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
 
     handler = c.get_conversation_handler()
     entry_point = handler.entry_points[0]
@@ -35,7 +35,7 @@ def test_conversation_handler():
 
 def test_conversation_handler_no_suffix():
     log = logging.getLogger()
-    c = ConvTest(log)
+    c = ConvTest(log, 'created_at')
 
     handler = c.get_conversation_handler()
     entry_point = handler.entry_points[0]
@@ -48,7 +48,7 @@ def test_conversation_handler_no_suffix():
 
 def test_conversation_handler_custom_fb_and_entry():
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_entrypoint_name('test_start')
     c.set_fallback_name('test_end')
 
@@ -63,7 +63,7 @@ def test_conversation_handler_custom_fb_and_entry():
 
 def test_cancel(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -82,7 +82,7 @@ def test_cancel(mocker, telegram_bot):
 
 def test_show_mode_select(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -101,7 +101,7 @@ def test_show_mode_select(mocker, telegram_bot):
 
 def test_get_mode_show_mode_options(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -140,7 +140,7 @@ def test_get_mode_show_mode_options(mocker, telegram_bot):
 
 def test_get_mode_show_mode_options_w_f_and_c(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTestFiltersCommands(log, suffix='dev')
+    c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -180,7 +180,7 @@ def test_get_mode_show_mode_options_w_f_and_c(mocker, telegram_bot):
 
 def test_get_period_uom_show_quantity(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -200,7 +200,7 @@ def test_get_period_uom_show_quantity(mocker, telegram_bot):
 
 def test_show_list_of_commands(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -219,7 +219,7 @@ def test_show_list_of_commands(mocker, telegram_bot):
 
 def test_get_custom_command_and_execute(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     c.model = MockModel
 
@@ -245,7 +245,7 @@ def test_get_custom_command_and_execute(mocker, telegram_bot):
 
 def test_get_quantity_show_yes_no_filters(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -265,11 +265,11 @@ def test_get_quantity_show_yes_no_filters(mocker, telegram_bot):
 
 def test_execute_custom_command(telegram_bot, mocker):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch(
-        'connect.telegram_bot.telegram_conversation.execute_from_command_line',
+        'django_telegram.bot.telegram_conversation.call_command',
         return_value=True,
     )
 
@@ -278,7 +278,7 @@ def test_execute_custom_command(telegram_bot, mocker):
     chat = Chat(1, 'user')
     message.chat = chat
     updater.message = message
-    data = c.execute_custom_command(updater, 'command')
+    data = c.execute_custom_command(updater, 'xx')
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -302,11 +302,11 @@ def test_execute_custom_command(telegram_bot, mocker):
 
 def test_execute_custom_command_raise_exception(telegram_bot, mocker):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch(
-        'connect.telegram_bot.telegram_conversation.execute_from_command_line',
+        'django_telegram.bot.telegram_conversation.call_command',
         side_effect=Exception('error'),
     )
 
@@ -339,7 +339,7 @@ def test_execute_custom_command_raise_exception(telegram_bot, mocker):
 
 def test_get_yes_no_filters_and_proceed(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
@@ -368,7 +368,7 @@ def test_get_yes_no_filters_and_proceed(mocker, telegram_bot):
 @pytest.mark.django_db(transaction=True)
 def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
@@ -415,7 +415,7 @@ def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
 @pytest.mark.django_db(transaction=True)
 def test_get_filters_and_proceed(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
@@ -453,7 +453,7 @@ def test_get_filters_and_proceed(mocker, telegram_bot):
 @pytest.mark.django_db(transaction=True)
 def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
@@ -491,7 +491,7 @@ def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
 @pytest.mark.django_db(transaction=True)
 def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
     c.set_chat_id(1)
@@ -530,7 +530,7 @@ def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
 @pytest.mark.django_db(transaction=True)
 def test__get_initial_queryset():
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.model = FakeModel
     c.set_chat_id(1)
 
@@ -543,7 +543,7 @@ def test__get_initial_queryset():
 @pytest.mark.django_db(transaction=True)
 def test_empty_queryset(mocker, telegram_bot):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.model = FakeModel
     c.set_chat_id(1)
     c.set_query_period_uom(WEEKS)
@@ -568,7 +568,7 @@ def test_get_aggregate_and_proceed_sum(
         mocker, telegram_bot,
 ):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
     c.set_chat_id(1)
@@ -592,7 +592,7 @@ def test_get_aggregate_and_proceed_unknown(
         mocker, telegram_bot,
 ):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.set_query_period_uom(WEEKS)
     c.set_query_period_quantity(10)
     c.set_chat_id(1)
@@ -616,7 +616,7 @@ def test_get_saved_filter_and_proceed(
         mocker, telegram_bot,
 ):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.model = MockModel
     c.set_chat_id(1)
     c.get_saved_filter = lambda x: 1
@@ -639,7 +639,7 @@ def test_get_saved_filter_and_proceed_no_filter_method(
         mocker, telegram_bot,
 ):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.model = MockModel
     c.set_chat_id(1)
     mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -659,7 +659,7 @@ def test_get_saved_filter_and_proceed_no_user(
         mocker, telegram_bot,
 ):
     log = logging.getLogger()
-    c = ConvTest(log, suffix='dev')
+    c = ConvTest(log, 'created_at', suffix='dev')
     c.model = MockModel
     c.get_saved_filter = lambda x: 1
     mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
@@ -676,4 +676,4 @@ def test_get_saved_filter_and_proceed_no_user(
 
 def test_invalid_suffix():
     with pytest.raises(ValueError):
-        ConvTest(object, '-dev')
+        ConvTest(object, 'created_at', '-dev')

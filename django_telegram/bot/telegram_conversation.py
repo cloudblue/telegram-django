@@ -1,7 +1,5 @@
 import operator
-import os
 import re
-import sys
 from io import StringIO
 from abc import ABCMeta
 from datetime import timedelta
@@ -11,23 +9,22 @@ from enum import Enum
 import django
 from django.db.models import Q, Sum
 from django.utils import timezone
-from django.core.management import execute_from_command_line
+from django.core.management import call_command
 
 from telegram import KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import CommandHandler, ConversationHandler, Filters, MessageHandler
 
-from connect.telegram_bot.constants import (
+from django_telegram.bot.constants import (
     BTN_CAPTION_BUILD_QUERY, BTN_CAPTION_CUSTOM_MGMT, BTN_CAPTION_USE_SAVED_FILTER,
     COUNT, DAYS, HOURS, NO, SUM, WEEKS, YES,
 )
-from connect.telegram_bot.decorators.chat_context import chat_context
-from connect.telegram_bot.decorators.log_args import log_args
-from connect.telegram_bot.errors.saved_filter_not_found import SavedFilterNotFound
-from connect.telegram_bot.renderers.qs2md import render_as_list
+from django_telegram.bot.decorators.chat_context import chat_context
+from django_telegram.bot.decorators.log_args import log_args
+from django_telegram.bot.errors.saved_filter_not_found import SavedFilterNotFound
+from django_telegram.bot.renderers.qs2md import render_as_list
 
 
 class TelegramConversation(object, metaclass=ABCMeta):
-    COMMANDS_DIR = None
     SUFFIX_REGEXP = r'^[\da-z_]{1,32}$'
     EMPTY_RESULT = 'Nothing found.'
 
@@ -45,7 +42,7 @@ class TelegramConversation(object, metaclass=ABCMeta):
         BUILD_AGGREGATE_SUM_PROPERTY = 10
         CUSTOM_MGMT_COMMAND_SELECT = 12
 
-    def __init__(self, logger, suffix=None):
+    def __init__(self, logger, model_datetime_property, suffix=None):
         if suffix and not re.match(self.SUFFIX_REGEXP, suffix):
             raise ValueError(f'Suffix does not match {self.SUFFIX_REGEXP}')
 
@@ -54,6 +51,7 @@ class TelegramConversation(object, metaclass=ABCMeta):
         self.logger = logger
         self.model = object
         self.suffix = suffix
+        self.model_datetime_property = model_datetime_property
         self._default_query_context()
         self.chat_id = None
         if self.suffix:
@@ -127,12 +125,6 @@ class TelegramConversation(object, metaclass=ABCMeta):
 
     @property
     def custom_commands(self):
-        if self.COMMANDS_DIR:
-            return list(map(lambda x: x.split('.')[0], filter(
-                lambda x: not x.startswith('__'),
-                os.listdir(self.COMMANDS_DIR),
-            )))
-
         return []
 
     def set_saved_filter(self, s_filter):
@@ -220,18 +212,18 @@ class TelegramConversation(object, metaclass=ABCMeta):
         return ConversationHandler.END
 
     def execute_custom_command(self, update, command):
-        old_stdout = sys.stdout
-        sys.stdout = mystdout = StringIO()
+        if command not in self.custom_commands:
+            self._reply(update, 'Invalid command')
+            return False
 
+        out = StringIO()
         try:
-            execute_from_command_line(['', command])
-            self._reply(update, f'Result {command}:\n{mystdout.getvalue()}')
+            call_command(command, stderr=out, stdout=out)
+            self._reply(update, f'Result {command}:\n{out.getvalue()}')
             return True
         except Exception as e:
             self._reply(update, f'Error {command}:\n{e}')
             return False
-        finally:
-            sys.stdout = old_stdout
 
     @log_args
     def show_mode_select(self, update, context):
@@ -416,9 +408,10 @@ class TelegramConversation(object, metaclass=ABCMeta):
 
         self.logger.info(f'Lookup {self.query_context}')
 
-        queryset = self._get_initial_queryset().filter(
-            created_at__gt=timezone.now() - self.query_period_delta,
-        )
+        history_lookup = {
+            f'{self.model_datetime_property}__gt': timezone.now() - self.query_period_delta,
+        }
+        queryset = self._get_initial_queryset().filter(**history_lookup)
 
         if self.has_query_filters:
             queryset = queryset.filter(

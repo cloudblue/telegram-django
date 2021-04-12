@@ -1,22 +1,22 @@
-# Connect Telegram Bot
+# Django Telegram Bot
 
-![pyversions](https://img.shields.io/pypi/pyversions/connect-telegram-bot.svg) [![PyPi Status](https://img.shields.io/pypi/v/connect-telegram-bot.svg)](https://pypi.org/project/connect-telegram-bot/) [![Build Connect Telegram Bot](https://github.com/cloudblue/connect-telegram-bot/actions/workflows/build.yml/badge.svg)](https://github.com/cloudblue/connect-telegram-bot/actions/workflows/build.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=connect-telegram-bot&metric=alert_status)](https://sonarcloud.io/dashboard?id=connect-telegram-bot) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=connect-telegram-bot&metric=coverage)](https://sonarcloud.io/dashboard?id=connect-telegram-bot) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=connect-telegram-bot&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=connect-telegram-bot)
+![pyversions](https://img.shields.io/pypi/pyversions/django-telegram.svg) [![PyPi Status](https://img.shields.io/pypi/v/django-telegram.svg)](https://pypi.org/project/django-telegram/) [![Build Django Telegram Bot](https://github.com/cloudblue/django-telegram/actions/workflows/build.yml/badge.svg)](https://github.com/cloudblue/django-telegram/actions/workflows/build.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=django-telegram&metric=alert_status)](https://sonarcloud.io/dashboard?id=django-telegram) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=django-telegram&metric=coverage)](https://sonarcloud.io/dashboard?id=django-telegram) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=django-telegram&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=django-telegram)
 
 ## Introduction
 
-`Connect Telegram Bot` is the base class which helps to build custom commands for the django models. It allows getting historical data from django models, as well as develop custom pre-defined filters and execute custom django management commands (i.e. those which are executed through  `python manage.py $command`)
+`Django Telegram Bot` is the base class which helps to build custom commands for the django models. It allows getting historical data from django models, as well as develop custom pre-defined filters and execute custom django management commands (i.e. those which are executed through  `python manage.py $command`)
 
 ## Install
 
-`Connect Telegram Bot` requires python 3.8 or later and has the following dependencies:
+`Django Telegram Bot` requires python 3.8 or later and has the following dependencies:
 
 * python-telegram-bot >=13.3
 * django>=2.2.19
 
-`Connect Telegram Bot` can be installed from [pypi.org](https://pypi.org/project/connect-telegram-bot/) using pip:
+`Django Telegram Bot` can be installed from [pypi.org](https://pypi.org/project/django-telegram/) using pip:
 
 ```
-$ pip install connect-telegram-bot
+$ pip install django-telegram
 ```
 
 ## Running The Bot
@@ -32,12 +32,16 @@ from telegram_bot.telegram_conversation import TelegramConversation
 
 
 class MyAppConversation(TelegramConversation):
-    COMMANDS_DIR = '/app/myapp/management/commands'
-
-    def __init__(self, logger, suffix):
-        super().__init__(logger, suffix)
+    def __init__(self, logger, model_datetime_property, suffix):
+        super().__init__(logger, model_datetime_property, suffix)
         self.model = MyAppModel
 
+    @property
+    def custom_commands(self):
+        return [
+            'custom_command1',
+        ]
+        
     @property
     def saved_filters(self):
         return [
@@ -52,19 +56,58 @@ class MyAppConversation(TelegramConversation):
 
 ```
 
-Create a directory in your project where these conversation implementations will be placed.
-`Connect Telegram Bot` requires multiple environment variables to be setup before executing:
+The method ```custom_commands``` must return a list of defined django commands which can be executed by this conversation handler. These commands are standard django commands which are normally executed via ```python manage.py $command```.
+The method ```saved_filters``` must return a list of defined custom filters. The filter's body must be implemented in the same class using the convention ```get_$filter_name```, like in the example above: for ```count``` filter the ```get_count``` method is implemented.
+
+Add the following sections to your ```settings.py```:
+
+Define application in ```INSTALLED_APPS```
+```
+    INSTALLED_APPS = [
+        ...
+        'django_telegram.bot',
+        ...
+    ]
+```
+Add section ```TELEGRAM_BOT``` for bot configuration
+```
+TELEGRAM_BOT = {
+    'CONVERSATIONS': [
+        'myapp.package1.package2.MyAppConversation',
+    ],
+    'TOKEN': '',
+    'COMMANDS_SUFFIX': None,
+    'HISTORY_LOOKUP_MODEL_PROPERTY': ''
+}
+```
+Add section ```django_telegram_bot``` to logger configuration
+```
+LOGGING = {
+...
+    'loggers': {
+...
+        'django_telegram_bot': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+...
+    },
+...
+}
+```
+
+Settings description:
 
 | Variable      | Description  |
 | ------------- |:-------------|
-|`TELEGRAM_BOT_TOKEN`|Telegram Token for the bot. Please refer to https://core.telegram.org/bots on how to create a bot.|
-|`DJANGO_SETTINGS_MODULE`|Django settings package for current project.|
-|`TELEGRAM_BOT_HANDLERS`|Directory where custom conversations (handlers) were placed, i.e. where we would put our `MyAppConversation` from above|
-|`TELEGRAM_BOT_COMMAND_SUFFIX`|In case of having multiple instances of the bot (with the same commands) we want to add some suffix to the commands, so that only specific bot is getting the command, so command becomes `myappconversation_${SUFFIX}`. If there is no need to have multiple instances of the same bot in the chat -- just leave this undefined. |
+|`TOKEN`|Telegram Token for the bot. Please refer to https://core.telegram.org/bots on how to create a bot.|
+|`CONVERSATIONS`|List of FQDNs for classes which implement and provide conversation instances|
+|`HISTORY_LOOKUP_MODEL_PROPERTY`|Property of the django model of DateTime type which is used to do history lookups|
+|`COMMANDS_SUFFIX`|In case of having multiple instances of the bot (with the same commands) we want to add some suffix to the commands, so that only specific bot is getting the command, so command becomes `myappconversation_${SUFFIX}`. If there is no need to have multiple instances of the same bot in the chat -- just leave this as ```None```. |
 
 ### Running The Bot
 
-`export TELEGRAM_BOT_TOKEN='....'; export DJANGO_SETTINGS_MODULE='settings.common'; export TELEGRAM_BOT_HANDLERS='/app/telegram_bot/conversation_handlers/'; export TELEGRAM_BOT_COMMAND_SUFFIX='suf1'; python telegram_bot/bot.py`
+`python manage.py start_bot`
 
 ## Testing
 
@@ -83,4 +126,4 @@ poetry run pytest
 
 ## License
 
-``Connect Telegram Bot`` is released under the [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+``Django Telegram Bot`` is released under the [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
