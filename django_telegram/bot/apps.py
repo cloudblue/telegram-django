@@ -11,7 +11,7 @@ from django_telegram.bot.constants import (
 
 
 class TelegramBotConfig(AppConfig):  # pragma: no cover
-    name = 'django_telegram.bot'
+    name = 'django_telegram'
     verbose_name = "Django Telegram Bot"
 
     def ready(self):
