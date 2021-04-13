@@ -1,6 +1,6 @@
 # Django Telegram Bot
 
-![pyversions](https://img.shields.io/pypi/pyversions/django-telegram.svg) [![PyPi Status](https://img.shields.io/pypi/v/django-telegram.svg)](https://pypi.org/project/django-telegram/) [![Build Django Telegram Bot](https://github.com/cloudblue/django-telegram/actions/workflows/build.yml/badge.svg)](https://github.com/cloudblue/django-telegram/actions/workflows/build.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=django-telegram&metric=alert_status)](https://sonarcloud.io/dashboard?id=django-telegram) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=django-telegram&metric=coverage)](https://sonarcloud.io/dashboard?id=django-telegram) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=django-telegram&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=django-telegram)
+![pyversions](https://img.shields.io/pypi/pyversions/telegram-django.svg) [![PyPi Status](https://img.shields.io/pypi/v/telegram-django.svg)](https://pypi.org/project/telegram-django/) [![Build Django Telegram Bot](https://github.com/cloudblue/telegram-django/actions/workflows/build.yml/badge.svg)](https://github.com/cloudblue/telegram-django/actions/workflows/build.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=telegram-django&metric=alert_status)](https://sonarcloud.io/dashboard?id=telegram-django) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=telegram-django&metric=coverage)](https://sonarcloud.io/dashboard?id=telegram-django) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=telegram-django&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=telegram-django)
 
 ## Introduction
 
@@ -13,10 +13,10 @@
 * python-telegram-bot >=13.3
 * django>=2.2.19
 
-`Django Telegram Bot` can be installed from [pypi.org](https://pypi.org/project/django-telegram/) using pip:
+`Django Telegram Bot` can be installed from [pypi.org](https://pypi.org/project/telegram-django/) using pip:
 
 ```
-$ pip install django-telegram
+$ pip install telegram-django
 ```
 
 ## Running The Bot
