@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "django-telegram"
+name = "telegram-django"
 version = "1.0.2"
 description = "Django Telegram Bot"
 authors = ["CloudBlue LLC"]
@@ -9,7 +9,7 @@ packages = [
 ]
 readme = "./README.md"
 homepage = "https://connect.cloudblue.com"
-repository = "https://github.com/cloudblue/django-telegram"
+repository = "https://github.com/cloudblue/telegram-django"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
