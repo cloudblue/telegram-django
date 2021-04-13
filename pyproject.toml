@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "telegram-django"
-version = "1.0.2"
+version = "1.0.3"
 description = "Django Telegram Bot"
 authors = ["CloudBlue LLC"]
 license = "Apache-2.0"
