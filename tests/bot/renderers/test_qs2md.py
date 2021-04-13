@@ -1,4 +1,4 @@
-from connect.telegram_bot.renderers.qs2md import render_as_list
+from django_telegram.bot.renderers.qs2md import render_as_list
 
 
 def test_render_as_list_less_10():

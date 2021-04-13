@@ -1,4 +1,4 @@
-name: Deploy Connect Telegram Bot
+name: Deploy Django Telegram Bot
 
 on:
   push:
