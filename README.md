@@ -65,7 +65,7 @@ Define application in ```INSTALLED_APPS```
 ```
     INSTALLED_APPS = [
         ...
-        'django_telegram.bot',
+        'django_telegram',
         ...
     ]
 ```
