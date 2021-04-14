@@ -14,7 +14,7 @@ from django_telegram.bot.constants import (
 from django_telegram.bot.telegram_conversation import TelegramConversation
 from django_telegram.bot.errors.saved_filter_not_found import SavedFilterNotFound
 
-from tests.bot import INITIAL_QUERY_SET_METHOD, TELEGRAM_REPLY_METHOD
+from tests.bot import DJANGO_CALL_COMMAND, INITIAL_QUERY_SET_METHOD, TELEGRAM_REPLY_METHOD
 from tests.bot.conftest import ConvTest, ConvTestFiltersCommands, FakeModel
 
 from django_mock_queries.query import MockModel, MockSet
@@ -263,13 +263,49 @@ def test_get_quantity_show_yes_no_filters(mocker, telegram_bot):
     assert c.query_period_quantity == 10
 
 
+def test_execute_command_exception(telegram_bot, mocker):
+    log = logging.getLogger()
+    c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
+    c.set_chat_id(1)
+    mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
+    mocker.patch(
+        DJANGO_CALL_COMMAND,
+        side_effect=Exception('ERROR'),
+    )
+
+    updater = Updater(bot=telegram_bot)
+    message = Message(1, timezone.now(), chat=None, text='10')
+    chat = Chat(1, 'user')
+    message.chat = chat
+    updater.message = message
+    data = c.execute_custom_command(updater, 'xx')
+    assert mock.called
+    assert mock.call_args[0] == ("``` Error xx:\nERROR ```",)
+    assert data is False
+    assert c.query_context == {
+        'mode': '',
+        'period': {
+            'uom': '',
+            'quantity': 0,
+            'timedelta': None,
+        },
+        'filters': [],
+        'aggregate': {
+            'type': '',
+            'property': '',
+        },
+        'saved': '',
+        'custom_command': '',
+    }
+
+
 def test_execute_custom_command(telegram_bot, mocker):
     log = logging.getLogger()
     c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch(
-        'django_telegram.bot.telegram_conversation.call_command',
+        DJANGO_CALL_COMMAND,
         return_value=True,
     )
 
@@ -306,7 +342,7 @@ def test_execute_custom_command_raise_exception(telegram_bot, mocker):
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch(
-        'django_telegram.bot.telegram_conversation.call_command',
+        DJANGO_CALL_COMMAND,
         side_effect=Exception('error'),
     )
 
