@@ -22,10 +22,39 @@ settings.TELEGRAM_BOT = {
     'TOKEN': 'token',
     'COMMANDS_SUFFIX': 'dev',
     'HISTORY_LOOKUP_MODEL_PROPERTY': 'created_at',
+    'MIDDLEWARE': {
+        'CHAT_ID': 123,
+        'RULES': [{
+            'view': 'view',
+            'trigger_codes': [1, 2],
+            'conditions': {
+                'type': 'value',
+                'field': 'field',
+                'field_value': 'value',
+            },
+            'message': 'msg',
+        }],
+    },
 }
 django.setup()
 
 from django_fake_model import models as f
+
+
+@pytest.fixture(scope='function')
+def django_request():
+    class MockRequest(object):
+        pass
+
+    class MockResolver(object):
+        pass
+
+    r = MockRequest()
+    r.resolver_match = MockResolver()
+    r.resolver_match.view_name = 'view'
+    r.resolver_match.kwargs = {'pk': 'pk-1'}
+
+    return r
 
 
 @pytest.fixture(scope='function')

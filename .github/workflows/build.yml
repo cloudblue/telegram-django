@@ -33,6 +33,9 @@ jobs:
     - name: Testing
       run: |
         poetry run pytest
+    - name: Fix coverage report for Sonar
+      run: |
+        sed -i 's/\/home\/runner\/work\/telegram-django\/telegram-django\//\/github\/workspace\//g' coverage.xml
     - name: SonarCloud
       uses: SonarSource/sonarcloud-github-action@master
       env:
