@@ -1,6 +1,6 @@
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand  # pragma: no cover
 
-from django_telegram.bot.bot_runner import BotRunner
+from django_telegram.bot.bot_runner import BotRunner  # pragma: no cover
 
 
 class Command(BaseCommand):  # pragma: no cover

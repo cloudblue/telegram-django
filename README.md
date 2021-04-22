@@ -109,6 +109,56 @@ Settings description:
 
 `python manage.py start_bot`
 
+## Middleware
+The library also provides a way to analyse **responses of type application/json** and based on defined rules send pre-defined messages.
+To enable middleware add the following line into your ```settings.MIDDLEWARE```
+```
+MIDDLEWARE = [
+...
+    'django_telegram.bot.middleware.TelegramMiddleware',
+]
+```
+
+Extend previously defined configuration in ```settings.py``` with the following
+```
+TELEGRAM_BOT = {
+    'CONVERSATIONS': [
+        'myapp.package1.package2.MyAppConversation',
+    ],
+    'TOKEN': '',
+    'COMMANDS_SUFFIX': None,
+    'HISTORY_LOOKUP_MODEL_PROPERTY': '',
+    'MIDDLEWARE': {
+        'CHAT_ID': -12356789,
+        'RULES': [{
+            'view': 'view',
+            'trigger_codes': [204, 200],
+            'conditions': {
+                'type': 'value',
+                'field': 'field',
+                'field_value': 'value',
+            },
+            'message': 'Message when this condition happened!',
+        }],
+    }
+}
+```
+Settings description:
+
+| Variable      | Description  |
+| ------------- |:-------------|
+|`CHAT_ID`|Telegram chat id to where the bot must send messages. Typically an integer like ```-12345677898```|
+|`RULES`|List of rules objects which configure a case when message must be sent|
+|`RULES[i].view`|View id in resolver definition, i.e. ```/v1/reports/fail/123``` URI would be a ```reports-fail```|
+|`RULES[i].trigger_codes`|List of HTTP codes in response where this rule needs to be triggered|
+|`RULES[i].conditions`|Optional. Additional checks which need to be done before sending the message|
+|`RULES[i].conditions.type`|Type of condition, can be either 'function' (when validation is done by user defined function) or 'value' (when validation is done by simple field/value comparison of response JSON).|
+|`RULES[i].conditions.function`|Required if `RULES[i].conditions.type` is `function` otherwise ignored. User defined function which receives as input response JSON as dict and must return either `True` or `False`|
+|`RULES[i].conditions.field`|Required if `RULES[i].conditions.type` is `value` otherwise ignored. Field to look up in response JSON|
+|`RULES[i].conditions.field_value`|Required if `RULES[i].conditions.type` is `value` otherwise ignored. Expected value to look up in response JSON|
+|`RULES[i].message`|Message which needs to be sent to Telegram in case all conditions match|
+
+
 ## Testing
 
 * Create virtualenv

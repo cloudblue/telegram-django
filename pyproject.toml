@@ -60,7 +60,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 testpaths = "tests"
 log_cli = true
-addopts = "--cov=django_telegram.bot --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
+addopts = "--cov=django_telegram --cov-report=term-missing:skip-covered --cov-report=html --cov-report=xml"
+filterwarnings = "ignore::UserWarning"
 
 [tool.coverage.run]
 branch = true
