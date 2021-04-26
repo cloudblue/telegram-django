@@ -52,7 +52,7 @@ class TelegramMiddleware(MiddlewareMixin):
                 return False
 
     def process_response(self, request, response):
-        if response.content_type.lower() != "application/json":
+        if response['Content-Type'].lower() != "application/json":
             return response
 
         view_name = request.resolver_match.view_name
