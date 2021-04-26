@@ -40,7 +40,7 @@ def test_process_response_not_json(mocker):
     }
 
     mw = TelegramMiddleware()
-    response = Response(data="model", content_type="text/html")
+    response = Response(data="model", headers={'Content-Type': 'text/html'})
 
     assert mw.process_response(None, response) == response
     mock_send_message.assert_not_called()
@@ -77,7 +77,7 @@ def test_process_response_matches(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
@@ -116,7 +116,7 @@ def test_process_response_matches_no_conditions(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
@@ -159,7 +159,7 @@ def test_process_response_matches_by_func(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
@@ -202,7 +202,7 @@ def test_process_response_matches_by_func_err(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
@@ -244,7 +244,7 @@ def test_process_response_not_matches_by_response_code(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
@@ -351,7 +351,7 @@ def test_process_response_config_does_not_exist(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
@@ -392,7 +392,7 @@ def test_process_response_exception(django_request, mocker):
     mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
-        content_type="application/json",
+        headers={'Content-Type': 'application/json'},
     )
     response._is_rendered = True
     response.content = '{"field":"value"}'
