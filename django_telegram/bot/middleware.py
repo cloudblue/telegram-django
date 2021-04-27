@@ -1,15 +1,18 @@
 import json
+import logging
 
 from django.conf import settings
 from django.utils.deprecation import MiddlewareMixin
 from django.utils.module_loading import import_string
 
+from rest_framework import status
+
 from django_telegram.bot.commands import send_message
 from django_telegram.bot.constants import (
-    SETTINGS_MW, SETTINGS_MW_CONDITIONS, SETTINGS_MW_CONDITIONS_FIELD,
-    SETTINGS_MW_CONDITIONS_FIELD_VALUE, SETTINGS_MW_CONDITIONS_FUNC,
-    SETTINGS_MW_CONDITIONS_TYPE, SETTINGS_MW_CONDITIONS_VALUE,
-    SETTINGS_MW_MESSAGE, SETTINGS_MW_RULES,
+    LOGGER_NAME, SETTINGS_MW, SETTINGS_MW_CONDITIONS,
+    SETTINGS_MW_CONDITIONS_FIELD, SETTINGS_MW_CONDITIONS_FIELD_VALUE,
+    SETTINGS_MW_CONDITIONS_FUNC, SETTINGS_MW_CONDITIONS_TYPE,
+    SETTINGS_MW_CONDITIONS_VALUE, SETTINGS_MW_MESSAGE, SETTINGS_MW_RULES,
     SETTINGS_MW_TRIGGER_CODES, SETTINGS_MW_VIEW,
 )
 
@@ -52,7 +55,10 @@ class TelegramMiddleware(MiddlewareMixin):
                 return False
 
     def process_response(self, request, response):
-        if response['Content-Type'].lower() != "application/json":
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            return response
+
+        if response['content-type'].lower() != "application/json":
             return response
 
         view_name = request.resolver_match.view_name
@@ -71,7 +77,10 @@ class TelegramMiddleware(MiddlewareMixin):
                         f'has ended with {response.status_code} '
                         f'and sends message: {current_config[SETTINGS_MW_MESSAGE]}',
                     )
-            except Exception:
+            except Exception as e:
                 #  we do not want this to affect any operations
-                pass
+                logger = logging.getLogger(LOGGER_NAME)
+                logger.error(
+                    f'TelegramMiddleware rule {current_config} finished with error: {str(e)}',
+                )
         return response
