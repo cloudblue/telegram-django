@@ -172,6 +172,47 @@ def test_process_response_matches_by_func(django_request, mocker):
     )
 
 
+def test_process_response_204_no_content(django_request, mocker):
+    mock_send_message = mocker.patch(
+        SEND_MSG_F,
+        return_value=True,
+    )
+
+    settings.TELEGRAM_BOT = {
+        'CONVERSATIONS': [
+            'tests.bot.conftest.ConvTest',
+        ],
+        'TOKEN': 'token',
+        'COMMANDS_SUFFIX': 'dev',
+        'HISTORY_LOOKUP_MODEL_PROPERTY': 'created_at',
+        'MIDDLEWARE': {
+            'CHAT_ID': 123,
+            'RULES': [{
+                'view': 'view',
+                'conditions': {
+                    'type': 'function',
+                    'function': 'tests.test_configurator.cond_fn',
+                },
+                'trigger_codes': [1, 2],
+                'message': 'msg',
+            }],
+        },
+    }
+
+    mw = TelegramMiddleware()
+    response = Response(
+        data={'field': 'value'},
+        headers={'Content-Type': 'application/json'},
+    )
+    response._is_rendered = True
+    response.content = '{"field":"value"}'
+    response.render()
+    response.status_code = 204
+
+    assert mw.process_response(django_request, response) == response
+    mock_send_message.assert_not_called()
+
+
 def test_process_response_matches_by_func_err(django_request, mocker):
     mock_send_message = mocker.patch(
         SEND_MSG_F,
