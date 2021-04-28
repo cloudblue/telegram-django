@@ -86,7 +86,7 @@ def test_process_response_matches(django_request, mocker):
 
     assert mw.process_response(django_request, response) == response
     mock_send_message.assert_called_once_with(
-        'view with pk pk-1 has ended with 1 and sends message: msg',
+        '[dev] view with pk pk-1 has ended with 1 and sends message: msg',
     )
 
 
@@ -125,7 +125,7 @@ def test_process_response_matches_no_conditions(django_request, mocker):
 
     assert mw.process_response(django_request, response) == response
     mock_send_message.assert_called_once_with(
-        'view with pk pk-1 has ended with 1 and sends message: msg',
+        '[dev] view with pk pk-1 has ended with 1 and sends message: msg',
     )
 
 
@@ -168,7 +168,7 @@ def test_process_response_matches_by_func(django_request, mocker):
 
     assert mw.process_response(django_request, response) == response
     mock_send_message.assert_called_once_with(
-        'view with pk pk-1 has ended with 1 and sends message: msg',
+        '[dev] view with pk pk-1 has ended with 1 and sends message: msg',
     )
 
 

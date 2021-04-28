@@ -72,6 +72,7 @@ class TelegramMiddleware(MiddlewareMixin):
             try:
                 if self.matches_config(current_config, response):
                     send_message(
+                        f'[{settings.TELEGRAM_BOT["COMMANDS_SUFFIX"]}] '
                         f'{request.resolver_match.view_name} with pk '
                         f'{request.resolver_match.kwargs.get("pk", None)} '
                         f'has ended with {response.status_code} '
