@@ -2,9 +2,7 @@ import json
 import logging
 
 from django.conf import settings
-from django.utils.deprecation import MiddlewareMixin
 from django.utils.module_loading import import_string
-
 from rest_framework import status
 
 from django_telegram.bot.commands import send_message
@@ -17,11 +15,44 @@ from django_telegram.bot.constants import (
 )
 
 
-class TelegramMiddleware(MiddlewareMixin):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class TelegramMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
         self.configs = settings.TELEGRAM_BOT[SETTINGS_MW]
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        if response.status_code == status.HTTP_204_NO_CONTENT:
+            return response
+
+        if response['content-type'].lower() != "application/json":
+            return response
+
+        view_name = request.resolver_match.view_name
+        config_exists = any(
+            filter(lambda x: x[SETTINGS_MW_VIEW] == view_name, self.configs[SETTINGS_MW_RULES]),
+        )
+        if config_exists:
+            current_config = list(
+                filter(lambda x: x[SETTINGS_MW_VIEW] == view_name, self.configs[SETTINGS_MW_RULES]),
+            )[0]
+            try:
+                if self.matches_config(current_config, response):
+                    send_message(
+                        f'[{settings.TELEGRAM_BOT["COMMANDS_SUFFIX"]}] '
+                        f'{request.resolver_match.view_name} with pk '
+                        f'{request.resolver_match.kwargs.get("pk", None)} '
+                        f'has ended with {response.status_code} '
+                        f'and sends message: {current_config[SETTINGS_MW_MESSAGE]}',
+                    )
+            except Exception as e:
+                #  we do not want this to affect any operations
+                logger = logging.getLogger(LOGGER_NAME)
+                logger.error(
+                    f'TelegramMiddleware rule {current_config} finished with error: {str(e)}',
+                )
+
+        return response
 
     def get_field_value(self, model, field):
         field_parts = field.split('.')
@@ -53,35 +84,3 @@ class TelegramMiddleware(MiddlewareMixin):
                 return user_func_def(json.loads(response.content))
             except Exception:
                 return False
-
-    def process_response(self, request, response):
-        if response.status_code == status.HTTP_204_NO_CONTENT:
-            return response
-
-        if response['content-type'].lower() != "application/json":
-            return response
-
-        view_name = request.resolver_match.view_name
-        config_exists = any(
-            filter(lambda x: x[SETTINGS_MW_VIEW] == view_name, self.configs[SETTINGS_MW_RULES]),
-        )
-        if config_exists:
-            current_config = list(
-                filter(lambda x: x[SETTINGS_MW_VIEW] == view_name, self.configs[SETTINGS_MW_RULES]),
-            )[0]
-            try:
-                if self.matches_config(current_config, response):
-                    send_message(
-                        f'[{settings.TELEGRAM_BOT["COMMANDS_SUFFIX"]}] '
-                        f'{request.resolver_match.view_name} with pk '
-                        f'{request.resolver_match.kwargs.get("pk", None)} '
-                        f'has ended with {response.status_code} '
-                        f'and sends message: {current_config[SETTINGS_MW_MESSAGE]}',
-                    )
-            except Exception as e:
-                #  we do not want this to affect any operations
-                logger = logging.getLogger(LOGGER_NAME)
-                logger.error(
-                    f'TelegramMiddleware rule {current_config} finished with error: {str(e)}',
-                )
-        return response

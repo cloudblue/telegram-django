@@ -1,5 +1,4 @@
 from django.conf import settings
-
 from telegram import Bot
 
 from django_telegram.bot.constants import SETTINGS_CHAT_ID, SETTINGS_MW, SETTINGS_TOKEN

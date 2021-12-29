@@ -33,7 +33,7 @@ keywords = [
 [tool.poetry.dependencies]
 python = "^3.8"
 python-telegram-bot = "^13.3"
-django = "~2.2"
+django = ">=2.2,<4"
 
 [tool.poetry.dev-dependencies]
 ipython = "^7.21.0"
@@ -76,4 +76,5 @@ exclude_lines = [
     "def __repr__",
     "raise NotImplementedError",
     "if __name__ == .__main__.:",
+    "noqa",
 ]

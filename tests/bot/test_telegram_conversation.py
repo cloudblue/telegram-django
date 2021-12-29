@@ -1,23 +1,20 @@
 import logging
 
 import pytest
-
 from django.utils import timezone
-
+from django_mock_queries.query import MockModel, MockSet
 from telegram import Chat, Message
 from telegram.ext import ConversationHandler, Updater
+
 
 from django_telegram.bot.constants import (
     BTN_CAPTION_BUILD_QUERY, BTN_CAPTION_CUSTOM_MGMT, BTN_CAPTION_USE_SAVED_FILTER,
     COUNT, NO, SUM, WEEKS, YES,
 )
-from django_telegram.bot.telegram_conversation import TelegramConversation
 from django_telegram.bot.errors.saved_filter_not_found import SavedFilterNotFound
-
+from django_telegram.bot.telegram_conversation import TelegramConversation
 from tests.bot import DJANGO_CALL_COMMAND, INITIAL_QUERY_SET_METHOD, TELEGRAM_REPLY_METHOD
 from tests.bot.conftest import ConvTest, ConvTestFiltersCommands, FakeModel
-
-from django_mock_queries.query import MockModel, MockSet
 
 
 def test_conversation_handler():
