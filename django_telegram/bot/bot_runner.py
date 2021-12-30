@@ -1,11 +1,9 @@
 import logging
 
+from django.conf import settings
 from django.utils.module_loading import import_string
-
 from telegram import ReplyKeyboardRemove
 from telegram.ext import Updater
-
-from django.conf import settings
 
 from django_telegram.bot.constants import LOGGER_NAME
 from django_telegram.bot.constants import (

@@ -2,3 +2,10 @@
 /coverage.xml
 /.coverage
 /.idea/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Unit test / coverage reports
+htmlcov/

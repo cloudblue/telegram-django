@@ -1,6 +1,6 @@
-from django_telegram.bot.bot_runner import BotRunner
-
 from django.conf import settings
+
+from django_telegram.bot.bot_runner import BotRunner
 
 
 def test_get_conversation_handler():

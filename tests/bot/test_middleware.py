@@ -1,5 +1,6 @@
-from django.conf import settings
+import logging
 
+from django.conf import settings
 from rest_framework.response import Response
 
 from django_telegram.bot.middleware import TelegramMiddleware
@@ -39,10 +40,14 @@ def test_process_response_not_json(mocker):
         },
     }
 
-    mw = TelegramMiddleware()
     response = Response(data="model", headers={'Content-Type': 'text/html'})
 
-    assert mw.process_response(None, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+
+    assert mw(None) == response
     mock_send_message.assert_not_called()
 
 
@@ -73,8 +78,6 @@ def test_process_response_matches(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -84,7 +87,12 @@ def test_process_response_matches(django_request, mocker):
     response.render()
     response.status_code = 1
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+
+    assert mw(django_request) == response
     mock_send_message.assert_called_once_with(
         '[dev] view with pk pk-1 has ended with 1 and sends message: msg',
     )
@@ -112,8 +120,6 @@ def test_process_response_matches_no_conditions(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -123,7 +129,11 @@ def test_process_response_matches_no_conditions(django_request, mocker):
     response.render()
     response.status_code = 1
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+    assert mw(django_request) == response
     mock_send_message.assert_called_once_with(
         '[dev] view with pk pk-1 has ended with 1 and sends message: msg',
     )
@@ -155,8 +165,6 @@ def test_process_response_matches_by_func(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -166,7 +174,12 @@ def test_process_response_matches_by_func(django_request, mocker):
     response.render()
     response.status_code = 1
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+
+    assert mw(django_request) == response
     mock_send_message.assert_called_once_with(
         '[dev] view with pk pk-1 has ended with 1 and sends message: msg',
     )
@@ -198,8 +211,6 @@ def test_process_response_204_no_content(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -209,7 +220,12 @@ def test_process_response_204_no_content(django_request, mocker):
     response.render()
     response.status_code = 204
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+
+    assert mw(django_request) == response
     mock_send_message.assert_not_called()
 
 
@@ -239,8 +255,6 @@ def test_process_response_matches_by_func_err(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -250,7 +264,11 @@ def test_process_response_matches_by_func_err(django_request, mocker):
     response.render()
     response.status_code = 1
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+    assert mw(django_request) == response
     mock_send_message.assert_not_called()
 
 
@@ -281,8 +299,6 @@ def test_process_response_not_matches_by_response_code(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -292,7 +308,12 @@ def test_process_response_not_matches_by_response_code(django_request, mocker):
     response.render()
     response.status_code = 5
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+
+    assert mw(django_request) == response
     mock_send_message.assert_not_called()
 
 
@@ -319,7 +340,7 @@ def test_get_field_value():
         },
     }
 
-    mw = TelegramMiddleware()
+    mw = TelegramMiddleware(None)
     model = {
         'field': 'value',
     }
@@ -350,7 +371,7 @@ def test_get_field_value_complex():
         },
     }
 
-    mw = TelegramMiddleware()
+    mw = TelegramMiddleware(None)
     model = {
         'field': {
             'field': {
@@ -388,8 +409,6 @@ def test_process_response_config_does_not_exist(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -399,11 +418,15 @@ def test_process_response_config_does_not_exist(django_request, mocker):
     response.render()
     response.status_code = 1
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    mw = TelegramMiddleware(get_response)
+    assert mw(django_request) == response
     mock_send_message.assert_not_called()
 
 
-def test_process_response_exception(django_request, mocker):
+def test_process_response_exception(django_request, mocker, caplog):
     mock_send_message = mocker.patch(
         SEND_MSG_F,
         side_effect=Exception('ERR'),
@@ -429,8 +452,6 @@ def test_process_response_exception(django_request, mocker):
             }],
         },
     }
-
-    mw = TelegramMiddleware()
     response = Response(
         data={'field': 'value'},
         headers={'Content-Type': 'application/json'},
@@ -440,5 +461,14 @@ def test_process_response_exception(django_request, mocker):
     response.render()
     response.status_code = 1
 
-    assert mw.process_response(django_request, response) == response
+    def get_response(self):
+        return response
+
+    with caplog.at_level(logging.ERROR):
+        mw = TelegramMiddleware(get_response)
+    assert mw(django_request) == response
     mock_send_message.assert_called_once()
+    expected_config = settings.TELEGRAM_BOT['MIDDLEWARE']['RULES'][0]
+    assert (
+        f'TelegramMiddleware rule {expected_config} finished with error: ERR'
+    ) in caplog.records[0].message

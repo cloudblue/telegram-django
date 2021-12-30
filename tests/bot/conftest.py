@@ -1,11 +1,8 @@
 import django
-
 import pytest
-
+from django.conf import settings
 from telegram import Bot
 from telegram.utils.request import Request
-
-from django.conf import settings
 
 from django_telegram.bot.telegram_conversation import TelegramConversation
 
@@ -38,7 +35,7 @@ settings.TELEGRAM_BOT = {
 }
 django.setup()
 
-from django_fake_model import models as f
+from django_fake_model import models as f  # noqa
 
 
 @pytest.fixture(scope='function')
