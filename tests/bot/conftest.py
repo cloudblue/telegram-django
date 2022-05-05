@@ -1,8 +1,6 @@
 import django
 import pytest
 from django.conf import settings
-from telegram import Bot
-from telegram.utils.request import Request
 
 from django_telegram.bot.telegram_conversation import TelegramConversation
 
@@ -52,13 +50,6 @@ def django_request():
     r.resolver_match.kwargs = {'pk': 'pk-1'}
 
     return r
-
-
-@pytest.fixture(scope='function')
-def telegram_bot(mocker):
-    mocker.patch('telegram.Bot._validate_token', return_value=True)
-
-    return Bot('12', request=Request(10))
 
 
 class FakeModel(f.FakeModel):

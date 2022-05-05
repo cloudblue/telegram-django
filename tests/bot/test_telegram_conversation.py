@@ -3,8 +3,8 @@ import logging
 import pytest
 from django.utils import timezone
 from django_mock_queries.query import MockModel, MockSet
-from telegram import Chat, Message
-from telegram.ext import ConversationHandler, Updater
+from telegram import Chat, Message, Update
+from telegram.ext import ConversationHandler
 
 
 from django_telegram.bot.constants import (
@@ -58,84 +58,82 @@ def test_conversation_handler_custom_fb_and_entry():
     assert fallback.command == ['test_end']
 
 
-def test_cancel(mocker, telegram_bot):
+def test_cancel(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat)
     message.chat = chat
-    updater.message = message
-    data = c.cancel(updater, None)
+    update.message = message
+    data = c.cancel(update, None)
 
     assert mock.called
     assert mock.call_args[0] == ('``` End of conversation ```',)
     assert data == ConversationHandler.END
 
 
-def test_show_mode_select(mocker, telegram_bot):
+def test_show_mode_select(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat)
     message.chat = chat
-    updater.message = message
-    data = c.show_mode_select(updater, None)
+    update.message = message
+    data = c.show_mode_select(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.MODE_SELECTOR
 
 
-def test_get_mode_show_mode_options(mocker, telegram_bot):
+def test_get_mode_show_mode_options(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_BUILD_QUERY)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=BTN_CAPTION_BUILD_QUERY)
     message.chat = chat
-    updater.message = message
-    data = c.get_mode_show_mode_options(updater, None)
+    update.message = message
+    data = c.get_mode_show_mode_options(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.BUILD_PERIOD
 
-    message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_USE_SAVED_FILTER)
-    chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=BTN_CAPTION_USE_SAVED_FILTER)
     message.chat = chat
-    updater.message = message
-    data = c.get_mode_show_mode_options(updater, None)
+    update.message = message
+    data = c.get_mode_show_mode_options(update, None)
 
     assert mock.called
     assert mock.call_args[0] == ('``` No saved filters found for this command ```',)
     assert data == ConversationHandler.END
 
-    message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_CUSTOM_MGMT)
-    chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=BTN_CAPTION_CUSTOM_MGMT)
     message.chat = chat
-    updater.message = message
-    data = c.get_mode_show_mode_options(updater, None)
+    update.message = message
+    data = c.get_mode_show_mode_options(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == ConversationHandler.END
 
 
-def test_get_mode_show_mode_options_w_f_and_c(mocker, telegram_bot):
+def test_get_mode_show_mode_options_w_f_and_c(mocker):
     log = logging.getLogger()
     c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -143,51 +141,49 @@ def test_get_mode_show_mode_options_w_f_and_c(mocker, telegram_bot):
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch('os.listdir', return_value=["x.py"])
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_BUILD_QUERY)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=BTN_CAPTION_BUILD_QUERY)
     message.chat = chat
-    updater.message = message
-    data = c.get_mode_show_mode_options(updater, None)
+    update.message = message
+    data = c.get_mode_show_mode_options(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.BUILD_PERIOD
 
-    message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_USE_SAVED_FILTER)
-    chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=BTN_CAPTION_USE_SAVED_FILTER)
     message.chat = chat
-    updater.message = message
-    data = c.get_mode_show_mode_options(updater, None)
+    update.message = message
+    data = c.get_mode_show_mode_options(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.SAVED_FILTER_SELECT
 
-    message = Message(1, timezone.now(), chat=None, text=BTN_CAPTION_CUSTOM_MGMT)
-    chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=BTN_CAPTION_CUSTOM_MGMT)
     message.chat = chat
-    updater.message = message
-    data = c.get_mode_show_mode_options(updater, None)
+    update.message = message
+    data = c.get_mode_show_mode_options(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.CUSTOM_MGMT_COMMAND_SELECT
 
 
-def test_get_period_uom_show_quantity(mocker, telegram_bot):
+def test_get_period_uom_show_quantity(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=WEEKS)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=WEEKS)
     message.chat = chat
-    updater.message = message
-    data = c.get_period_uom_show_quantity(updater, None)
+    update.message = message
+    data = c.get_period_uom_show_quantity(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -195,26 +191,26 @@ def test_get_period_uom_show_quantity(mocker, telegram_bot):
     assert c.query_period_uom == WEEKS
 
 
-def test_show_list_of_commands(mocker, telegram_bot):
+def test_show_list_of_commands(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=WEEKS)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=WEEKS)
     message.chat = chat
-    updater.message = message
-    data = c.show_list_of_commands(updater, None)
+    update.message = message
+    data = c.show_list_of_commands(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == ConversationHandler.END
 
 
-def test_get_custom_command_and_execute(mocker, telegram_bot):
+def test_get_custom_command_and_execute(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -229,30 +225,30 @@ def test_get_custom_command_and_execute(mocker, telegram_bot):
     mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
     mocker.patch('os.listdir', return_value=["x.py"])
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='x')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='x')
     message.chat = chat
-    updater.message = message
-    data = c.get_custom_command_and_execute(updater, None)
+    update.message = message
+    data = c.get_custom_command_and_execute(update, None)
 
     assert data == ConversationHandler.END
     assert c.custom_command == 'x'
 
 
-def test_get_quantity_show_yes_no_filters(mocker, telegram_bot):
+def test_get_quantity_show_yes_no_filters(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='10')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='10')
     message.chat = chat
-    updater.message = message
-    data = c.get_quantity_show_yes_no_filters(updater, None)
+    update.message = message
+    data = c.get_quantity_show_yes_no_filters(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -260,7 +256,7 @@ def test_get_quantity_show_yes_no_filters(mocker, telegram_bot):
     assert c.query_period_quantity == 10
 
 
-def test_execute_command_exception(telegram_bot, mocker):
+def test_execute_command_exception(mocker):
     log = logging.getLogger()
     c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -270,12 +266,12 @@ def test_execute_command_exception(telegram_bot, mocker):
         side_effect=Exception('ERROR'),
     )
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='10')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='10')
     message.chat = chat
-    updater.message = message
-    data = c.execute_custom_command(updater, 'xx')
+    update.message = message
+    data = c.execute_custom_command(update, 'xx')
     assert mock.called
     assert mock.call_args[0] == ("``` Error xx:\nERROR ```",)
     assert data is False
@@ -296,7 +292,7 @@ def test_execute_command_exception(telegram_bot, mocker):
     }
 
 
-def test_execute_custom_command(telegram_bot, mocker):
+def test_execute_custom_command(mocker):
     log = logging.getLogger()
     c = ConvTestFiltersCommands(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -306,12 +302,12 @@ def test_execute_custom_command(telegram_bot, mocker):
         return_value=True,
     )
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='10')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='10')
     message.chat = chat
-    updater.message = message
-    data = c.execute_custom_command(updater, 'xx')
+    update.message = message
+    data = c.execute_custom_command(update, 'xx')
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -333,7 +329,7 @@ def test_execute_custom_command(telegram_bot, mocker):
     }
 
 
-def test_execute_custom_command_raise_exception(telegram_bot, mocker):
+def test_execute_custom_command_raise_exception(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -343,12 +339,12 @@ def test_execute_custom_command_raise_exception(telegram_bot, mocker):
         side_effect=Exception('error'),
     )
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='10')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='10')
     message.chat = chat
-    updater.message = message
-    data = c.execute_custom_command(updater, 'command')
+    update.message = message
+    data = c.execute_custom_command(update, 'command')
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -370,28 +366,27 @@ def test_execute_custom_command_raise_exception(telegram_bot, mocker):
     }
 
 
-def test_get_yes_no_filters_and_proceed(mocker, telegram_bot):
+def test_get_yes_no_filters_and_proceed(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=YES)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=YES)
     message.chat = chat
-    updater.message = message
-    data = c.get_yes_no_filters_and_proceed(updater, None)
+    update.message = message
+    data = c.get_yes_no_filters_and_proceed(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.BUILD_FILTERS
 
-    message = Message(1, timezone.now(), chat=None, text=NO)
-    chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=NO)
     message.chat = chat
-    updater.message = message
-    data = c.get_yes_no_filters_and_proceed(updater, None)
+    update.message = message
+    data = c.get_yes_no_filters_and_proceed(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -399,7 +394,7 @@ def test_get_yes_no_filters_and_proceed(mocker, telegram_bot):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
+def test_get_yes_no_aggregate_and_proceed(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -408,12 +403,12 @@ def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=YES)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=YES)
     message.chat = chat
-    updater.message = message
-    data = c.get_yes_no_aggregate_and_proceed(updater, None)
+    update.message = message
+    data = c.get_yes_no_aggregate_and_proceed(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -434,11 +429,10 @@ def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
         return_value=fake_data,
     )
 
-    message = Message(1, timezone.now(), chat=None, text=NO)
-    chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=NO)
     message.chat = chat
-    updater.message = message
-    data = c.get_yes_no_aggregate_and_proceed(updater, None)
+    update.message = message
+    data = c.get_yes_no_aggregate_and_proceed(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -446,7 +440,7 @@ def test_get_yes_no_aggregate_and_proceed(mocker, telegram_bot):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_filters_and_proceed(mocker, telegram_bot):
+def test_get_filters_and_proceed(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -455,11 +449,11 @@ def test_get_filters_and_proceed(mocker, telegram_bot):
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='status=succeeded')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='status=succeeded')
     message.chat = chat
-    updater.message = message
+    update.message = message
 
     fake_data = MockSet()
     for _i in range(1, 15):
@@ -476,7 +470,7 @@ def test_get_filters_and_proceed(mocker, telegram_bot):
         return_value=fake_data,
     )
 
-    data = c.get_filters_and_proceed(updater, None)
+    data = c.get_filters_and_proceed(update, None)
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == TelegramConversation.STATUS.BUILD_AGGREGATE_YES_NO
@@ -484,7 +478,7 @@ def test_get_filters_and_proceed(mocker, telegram_bot):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
+def test_get_aggregate_property_and_proceed(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_chat_id(1)
@@ -494,11 +488,11 @@ def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='id')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='id')
     message.chat = chat
-    updater.message = message
+    update.message = message
 
     fake_data = MockSet()
     for _i in range(1, 15):
@@ -514,7 +508,7 @@ def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
         return_value=fake_data,
     )
 
-    data = c.get_aggregate_property_and_proceed(updater, None)
+    data = c.get_aggregate_property_and_proceed(update, None)
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == ConversationHandler.END
@@ -522,7 +516,7 @@ def test_get_aggregate_property_and_proceed(mocker, telegram_bot):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
+def test_get_aggregate_and_proceed_count(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_query_period_uom(WEEKS)
@@ -531,11 +525,11 @@ def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=COUNT)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=COUNT)
     message.chat = chat
-    updater.message = message
+    update.message = message
 
     fake_data = MockSet()
     for _i in range(1, 15):
@@ -552,7 +546,7 @@ def test_get_aggregate_and_proceed_count(mocker, telegram_bot):
         return_value=fake_data,
     )
 
-    data = c.get_aggregate_and_proceed(updater, None)
+    data = c.get_aggregate_and_proceed(update, None)
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
     assert data == ConversationHandler.END
@@ -574,7 +568,7 @@ def test__get_initial_queryset():
 
 @FakeModel.fake_me
 @pytest.mark.django_db(transaction=True)
-def test_empty_queryset(mocker, telegram_bot):
+def test_empty_queryset(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.model = FakeModel
@@ -586,20 +580,18 @@ def test_empty_queryset(mocker, telegram_bot):
 
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=COUNT)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=COUNT)
     message.chat = chat
-    updater.message = message
+    update.message = message
 
-    c.run_query(updater)
+    c.run_query(update)
 
     assert mock.call_args[0] == (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
 
 
-def test_get_aggregate_and_proceed_sum(
-        mocker, telegram_bot,
-):
+def test_get_aggregate_and_proceed_sum(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_query_period_uom(WEEKS)
@@ -607,13 +599,13 @@ def test_get_aggregate_and_proceed_sum(
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text=SUM)
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text=SUM)
     message.chat = chat
-    updater.message = message
+    update.message = message
 
-    data = c.get_aggregate_and_proceed(updater, None)
+    data = c.get_aggregate_and_proceed(update, None)
 
     assert mock.called
     assert mock.call_args[0] != (f'``` {TelegramConversation.EMPTY_RESULT} ```',)
@@ -621,9 +613,7 @@ def test_get_aggregate_and_proceed_sum(
     assert c.aggregate_type == SUM
 
 
-def test_get_aggregate_and_proceed_unknown(
-        mocker, telegram_bot,
-):
+def test_get_aggregate_and_proceed_unknown(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.set_query_period_uom(WEEKS)
@@ -631,13 +621,13 @@ def test_get_aggregate_and_proceed_unknown(
     c.set_chat_id(1)
     mock = mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='unknown')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='unknown')
     message.chat = chat
-    updater.message = message
+    update.message = message
 
-    data = c.get_aggregate_and_proceed(updater, None)
+    data = c.get_aggregate_and_proceed(update, None)
 
     assert mock.called
     assert mock.call_args[0] == ('``` End of conversation ```',)
@@ -645,9 +635,7 @@ def test_get_aggregate_and_proceed_unknown(
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_saved_filter_and_proceed(
-        mocker, telegram_bot,
-):
+def test_get_saved_filter_and_proceed(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.model = MockModel
@@ -656,54 +644,49 @@ def test_get_saved_filter_and_proceed(
 
     mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='saved_filter')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='saved_filter')
     message.chat = chat
-    updater.message = message
+    update.message = message
 
-    data = c.get_saved_filter_and_proceed(updater, None)
+    data = c.get_saved_filter_and_proceed(update, None)
     assert data == ConversationHandler.END
     assert c.saved_filter == 'saved_filter'
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_saved_filter_and_proceed_no_filter_method(
-        mocker, telegram_bot,
-):
+def test_get_saved_filter_and_proceed_no_filter_method(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.model = MockModel
     c.set_chat_id(1)
     mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='unknown')
+    update = Update(1)
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='unknown')
     message.chat = chat
-    updater.message = message
+    update.message = message
 
     with pytest.raises(SavedFilterNotFound):
-        c.get_saved_filter_and_proceed(updater, None)
+        c.get_saved_filter_and_proceed(update, None)
 
 
 @pytest.mark.django_db(transaction=True)
-def test_get_saved_filter_and_proceed_no_user(
-        mocker, telegram_bot,
-):
+def test_get_saved_filter_and_proceed_no_user(mocker):
     log = logging.getLogger()
     c = ConvTest(log, 'created_at', suffix='dev')
     c.model = MockModel
     c.get_saved_filter = lambda x: 1
     mocker.patch(TELEGRAM_REPLY_METHOD, return_value=None)
 
-    updater = Updater(bot=telegram_bot)
-    message = Message(1, timezone.now(), chat=None, text='saved_filter')
     chat = Chat(1, 'user')
+    message = Message(1, timezone.now(), chat=chat, text='saved_filter')
     message.chat = chat
-    updater.message = message
-
-    data = c.get_saved_filter_and_proceed(updater, None)
+    update = Update(1)
+    update.message = message
+    data = c.get_saved_filter_and_proceed(update, None)
     assert data is None
 
 

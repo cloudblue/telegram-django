@@ -17,6 +17,7 @@ classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
     "Topic :: Utilities",
     "Topic :: Software Development :: Libraries",
 ]
@@ -32,26 +33,30 @@ keywords = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-python-telegram-bot = "^13.3"
+python-telegram-bot = "13.*"
 django = ">=2.2,<4"
 
 [tool.poetry.dev-dependencies]
-ipython = "^7.21.0"
-pytest = "^6.1.2"
-pytest-cov = "^2.10.1"
-pytest-mock = "^3.3.1"
-coverage = {extras = ["toml"], version = "^5.3"}
-flake8 = "~3.8"
-flake8-bugbear = "~20"
-flake8-cognitive-complexity = "^0.1"
-flake8-commas = "~2.0"
-flake8-future-import = "~0.4"
-flake8-import-order = "~0.18"
-flake8-broken-line = "~0.3"
-fs = "^2.4.12"
-django-fake-database-backends = "0.1.1"
-django-fake-model = "0.1.4"
-django-mock-queries = "2.1.6"
+ipython = "8.*"
+pytest = "7.*"
+pytest-cov = "3.*"
+pytest-mock = "3.*"
+coverage = {extras = ["toml"], version = "6.*"}
+flake8 = "4.*"
+flake8-broken-line = "0.*"
+flake8-bugbear = "22.*"
+flake8-cognitive-complexity = "0.*"
+flake8-commas = "2.*"
+flake8-comprehensions = "3.*"
+flake8-debugger = "4.*"
+flake8-eradicate = "1.*"
+flake8-future-import = "0.*"
+flake8-import-order = "0.*"
+flake8-string-format = "0.*"
+fs = "2.*"
+django-fake-database-backends = "0.*"
+django-fake-model = "0.*"
+django-mock-queries = "2.*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0", "setuptools"]
