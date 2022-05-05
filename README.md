@@ -11,7 +11,7 @@
 `Django Telegram Bot` requires python 3.8 or later and has the following dependencies:
 
 * python-telegram-bot >=13.3
-* django>=2.2.20
+* django>=3.2.13
 
 `Django Telegram Bot` can be installed from [pypi.org](https://pypi.org/project/telegram-django/) using pip:
 
